@@ -63,6 +63,8 @@ OBJECTS := \
   $(OBJDIR)/RootFinder_239a995f.o \
   $(OBJDIR)/State_22979684.o \
   $(OBJDIR)/AudioComponent_521bd9c9.o \
+  $(OBJDIR)/BScanDisplayNode_1a596994.o \
+  $(OBJDIR)/DFTNode_5f711cf.o \
   $(OBJDIR)/LfpTriggeredAverageNode_ff52d7b9.o \
   $(OBJDIR)/FileReader_18023b0e.o \
   $(OBJDIR)/ChannelMappingNode_d9219b9c.o \
@@ -84,6 +86,7 @@ OBJECTS := \
   $(OBJDIR)/RecordControl_3e1c6062.o \
   $(OBJDIR)/Merger_2f90542e.o \
   $(OBJDIR)/Splitter_6e27a57b.o \
+  $(OBJDIR)/BScanDisplayCanvas_c881e695.o \
   $(OBJDIR)/LfpTriggeredAverageCanvas_50148944.o \
   $(OBJDIR)/SpikeObject_24e8c655.o \
   $(OBJDIR)/SpikeDisplayCanvas_b208ff6e.o \
@@ -284,6 +287,16 @@ $(OBJDIR)/AudioComponent_521bd9c9.o: ../../Source/Audio/AudioComponent.cpp
 	@echo "Compiling AudioComponent.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
+$(OBJDIR)/BScanDisplayNode_1a596994.o: ../../Source/Processors/BScanDisplayNode.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling BScanDisplayNode.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/DFTNode_5f711cf.o: ../../Source/Processors/DFTNode.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling DFTNode.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
 $(OBJDIR)/LfpTriggeredAverageNode_ff52d7b9.o: ../../Source/Processors/LfpTriggeredAverageNode.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling LfpTriggeredAverageNode.cpp"
@@ -387,6 +400,11 @@ $(OBJDIR)/Merger_2f90542e.o: ../../Source/Processors/Utilities/Merger.cpp
 $(OBJDIR)/Splitter_6e27a57b.o: ../../Source/Processors/Utilities/Splitter.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling Splitter.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/BScanDisplayCanvas_c881e695.o: ../../Source/Processors/Visualization/BScanDisplayCanvas.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling BScanDisplayCanvas.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/LfpTriggeredAverageCanvas_50148944.o: ../../Source/Processors/Visualization/LfpTriggeredAverageCanvas.cpp
