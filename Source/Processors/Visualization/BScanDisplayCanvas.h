@@ -98,13 +98,10 @@ private:
 
 	HeapBlock<float> allocatedData;
 	Array<int> indicesArray;
-	Array<int> lastIndexArray;
 
 	int sC, sX, sY;
 	int channelSize;
 
-	int writtenBeforeCicling;
-	bool cicling;
 }
 
 #endif  // __BSCANDISPLAYCANVAS_H_367A3CBA__

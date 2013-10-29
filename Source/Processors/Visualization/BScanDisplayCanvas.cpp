@@ -33,7 +33,6 @@ BScanScreenBuffer::BScanScreenBuffer(int nChans, int xSize, int ySize)
 	for (int i = 0; i < nChans; i++)
 	{
 		indicesArray.add(0);
-		lastIndexArray.add(0);
 	}
 }
 
@@ -64,7 +63,6 @@ void BScanScreenBuffer::resize(int nChans, int xSize, int ySize)
 	for (int i = 0; i < nChans; i++)
 	{
 		indicesArray.add(0);
-		lastIndexArray.add(0);
 	}
 }
 
@@ -74,7 +72,6 @@ void BScanScreenBuffer::clear()
 	for (int i = 0; i < sC; i++)
 	{
 		indicesArray.set(i,0);
-		lastIndexArray.set(i,0);
 	}
 }
 
@@ -87,21 +84,11 @@ void BScanScreenBuffer::addFromAudioSampleBuffer(AudioSampleBuffer& buffer, int 
 {
 	float scaleFactor = frameSize / sY;
 	float* channelData = allocatedData+channel*channelSize;
-	int offset = lastIndexArray[channel]*sY;
+	int offset = indicesArray[channel]*sY;
 
 
 	for (int i = 0; i < nFrames; i++)
 	{
-		if (lastIndexArray[channel] >= sX)
-		{
-			offset = 0;
-			lastIndexArray.set(channel,0);
-		}
-		else
-		{
-			lastIndexArray.set(channel,lastIndexArray[channel]+1);
-		}
-
 		int bufOrig=startSample+i*frameSize;
 
 		for (int j = 0; j < sY; j++)
@@ -110,20 +97,16 @@ void BScanScreenBuffer::addFromAudioSampleBuffer(AudioSampleBuffer& buffer, int 
 			offset++;
 		}
 
-	}
-
-	if (!cicling)
-	{
-		writtenBeforeCicling+=nFrames;
-		if (writtenBeforeCicling > sX)
+		if (indicesArray[channel] >= sX)
 		{
-			cicling=true;
+			offset = 0;
+			indicesArray.set(channel,0);
 		}
-	}
-	
-	if (cicling)
-	{
-		indicesArray.set(channel,(indicesArray[channel]+nFrames) % sX);
+		else
+		{
+			indicesArray.set(channel,indicesArray[channel]+1);
+		}
+
 	}
 	
 }
