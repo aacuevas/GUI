@@ -29,6 +29,7 @@
 #include "Visualizer.h"
 
 class BScanChannelDisplay;
+class BScanDisplay;
 
 class BScanDisplayCanvas : public Visualizer
 {
@@ -48,9 +49,24 @@ public:
 	void setParameter(int, int, int, float) {}
 
 private:
-	OwnedArray<BScanChannelDisplay> channelDisplayArray;
+	ScopedPointer<BScanDisplay> display;
+	int frameSize();
+
+	AudioSampleBuffer *displayBuffer;
+	ScopedPointer<BScanScreenBuffer> screenBuffer;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanDisplayCanvas);
+};
+
+class BScanDisplay : public Component
+{
+public:
+
+	BScanDisplay();
+	~BScanDisplay();
+
+private:
+
 };
 
 class BScanChannelDisplay : public Component
@@ -62,6 +78,33 @@ public:
 	void paint(Graphics &g);
 
 
+};
+
+class BScanScreenBuffer
+{
+public:
+	BScanScreenBuffer(int nChans, int xSize, int ySize);
+	~BScanScreenBuffer();
+
+	float* getPointer(int chan, int frame, int pos) const;
+	float getPoint(int chan, int frame, int pos) const;
+	int getChannelIndex(int chan) const;
+
+	void addFromAudioSampleBuffer(AudioSampleBuffer& buffer, int channel, int startSample, int nFrames, int frameSize);
+	void resize(int nChans, int xSize, int ySize);
+	void clear();
+
+private:
+
+	HeapBlock<float> allocatedData;
+	Array<int> indicesArray;
+	Array<int> lastIndexArray;
+
+	int sC, sX, sY;
+	int channelSize;
+
+	int writtenBeforeCicling;
+	bool cicling;
 }
 
 #endif  // __BSCANDISPLAYCANVAS_H_367A3CBA__
