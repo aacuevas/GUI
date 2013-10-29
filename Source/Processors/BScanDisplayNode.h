@@ -64,21 +64,26 @@ public:
         other way, the application will crash.  */
     void setParameter(int parameterIndex, float newValue);
 
-	/** Called when the signal chain changes
-
-		Every time the chain is modified, as the number of input channels or other
-		settings may change, this function is called to update the internal settings
-		of the processor. Typical examples are bufer sizes. */
 	void updateSettings();
 
 	bool enable();
 	bool disable();
+
+	int getFrameIndex();
+	int getFrameSize();
 	
 private:
 
+	ScopedPointer<AudioSampleBuffer> displayBuffer;
+	int frameIndex;
+
+	int frameSize;
+
+	bool resizeBuffer();
+
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanDisplayNode);
 
-}
+};
 
 
 

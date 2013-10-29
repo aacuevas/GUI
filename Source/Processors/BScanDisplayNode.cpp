@@ -24,8 +24,10 @@
 #include "BScanDisplayNode.h"
 
 BScanDisplayNode::BScanDisplayNode()
-	: GenericProcessor("B-Scan Visualizer")
+	: GenericProcessor("B-Scan Visualizer"),
+	frameIndex(0), frameSize(1024)
 {
+	displayBuffer = new AudioSampleBuffer(8,1024);
 }
 
 BScanDisplayNode::~BScanDisplayNode()
@@ -39,9 +41,28 @@ void BScanDisplayNode::setParameter(int parameterIndex, float newValue)
 
 void BScanDisplayNode::updateSettings()
 {
-	/* Something on the lines of
-	displayBuffer.Resize(getNumInputs(),M);
-	*/
+
+}
+
+bool BScanDisplayNode::resizeBuffer()
+{
+	frameSize = channels[0]->bitVolts; //PLACEHOLDER. TODO: Create an actual "frameSize" on spectrum channels
+	int nInputs = getNumInputs();
+
+	if (frameSize > 0 && nInputs > 0)
+	{
+		displayBuffer->setSize(nInputs,frameSize*2000); //Let's keep 200 frames for now
+		frameIndex = 0;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool BScanDisplayNode::enable()
+{
 
 }
 
@@ -49,6 +70,62 @@ void BScanDisplayNode::process(AudioSampleBuffer& buffer,
                                MidiBuffer& events,
                                int& nSamples)
 {
+	int samplesIndex = frameIndex*frameSize;
+
+	int numFrames = (nSamples / frameSize); //nSamples should be a multiple of frameSize, but just in case, this will round any excess
+	int samplesToRead = numFrames*frameSize;
+
+	int samplesLeft = displayBuffer->getNumSamples() - samplesIndex;
+
+	if (samplesToRead < samplesLeft)
+	{
+
+		for (int chan = 0; chan < buffer.getNumChannels; chan++)
+		{
+			displayBuffer->copyFrom(chan,
+									samplesIndex,
+									buffer,
+									chan,
+									0,
+									samplesToRead);
+		}
+		frameIndex+=numFrames;
+	}
+	else
+	{
+		int extraSamples = samplesToRead - samplesLeft;
+
+		for (int chan = 0; chan < buffer.getNumChannels; chan++)
+		{
+			displayBuffer->copyFrom(chan,
+									samplesIndex,
+									buffer,
+									chan,
+									0,
+									samplesLeft);
+			
+			displayBuffer->copyFrom(chan,
+									0,
+									buffer,
+									chan,
+									samplesLeft,
+									extraSamples);
+
+		}
+
+		frameIndex = extraSamples/frameSize;
+	}
 
 
+
+}
+
+int BScanDisplayNode::getFrameIndex()
+{
+	return frameIndex;
+}
+
+int BScanDisplayNode::getFrameSize()
+{
+	return frameSize;
 }
