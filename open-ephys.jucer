@@ -334,6 +334,10 @@
         <FILE id="hGnGAjh" name="EventNode.cpp" compile="1" resource="0" file="Source/Processors/EventNode.cpp"/>
         <FILE id="dUtRN6" name="EventNode.h" compile="0" resource="0" file="Source/Processors/EventNode.h"/>
         <GROUP id="AqvwO6w" name="Editors">
+          <FILE id="jwQ2Qt" name="BScanDisplayEditor.cpp" compile="1" resource="0"
+                file="Source/Processors/Editors/BScanDisplayEditor.cpp"/>
+          <FILE id="CaBuH3" name="BScanDisplayEditor.h" compile="0" resource="0"
+                file="Source/Processors/Editors/BScanDisplayEditor.h"/>
           <FILE id="E2PXvz" name="ElectrodeButtons.cpp" compile="1" resource="0"
                 file="Source/Processors/Editors/ElectrodeButtons.cpp"/>
           <FILE id="yriJOG" name="ElectrodeButtons.h" compile="0" resource="0"

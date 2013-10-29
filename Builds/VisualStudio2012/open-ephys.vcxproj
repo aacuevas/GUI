@@ -309,6 +309,7 @@
     <ClCompile Include="..\..\Source\Processors\SpikeDetector.cpp"/>
     <ClCompile Include="..\..\Source\Processors\AudioNode.cpp"/>
     <ClCompile Include="..\..\Source\Processors\EventNode.cpp"/>
+    <ClCompile Include="..\..\Source\Processors\Editors\BScanDisplayEditor.cpp"/>
     <ClCompile Include="..\..\Source\Processors\Editors\ElectrodeButtons.cpp"/>
     <ClCompile Include="..\..\Source\Processors\Editors\LfpTriggeredAverageEditor.cpp"/>
     <ClCompile Include="..\..\Source\Processors\Editors\ChannelMappingEditor.cpp"/>
@@ -1511,6 +1512,7 @@
     <ClInclude Include="..\..\Source\Processors\SpikeDetector.h"/>
     <ClInclude Include="..\..\Source\Processors\AudioNode.h"/>
     <ClInclude Include="..\..\Source\Processors\EventNode.h"/>
+    <ClInclude Include="..\..\Source\Processors\Editors\BScanDisplayEditor.h"/>
     <ClInclude Include="..\..\Source\Processors\Editors\ElectrodeButtons.h"/>
     <ClInclude Include="..\..\Source\Processors\Editors\LfpTriggeredAverageEditor.h"/>
     <ClInclude Include="..\..\Source\Processors\Editors\ChannelMappingEditor.h"/>

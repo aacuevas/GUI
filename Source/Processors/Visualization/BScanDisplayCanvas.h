@@ -35,7 +35,7 @@ class BScanDisplayCanvas : public Visualizer
 {
 public:
 
-	BScanDisplayCanvas();
+	BScanDisplayCanvas(BScanDisplayNode* n);
 	~BScanDisplayCanvas();
 
 	void paint(Graphics &g);
@@ -54,6 +54,8 @@ private:
 
 	AudioSampleBuffer *displayBuffer;
 	ScopedPointer<BScanScreenBuffer> screenBuffer;
+
+	BScanDisplayNode *processor;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanDisplayCanvas);
 };
