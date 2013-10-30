@@ -184,7 +184,16 @@ void BScanDisplayCanvas::refresh()
 
 void BScanDisplayCanvas::comboBoxChanged(ComboBox* cb)
 {
-
+	if (cb == heightSelector)
+	{
+		channelHeight = heights[cb->getSelectedId()-1].getIntValue();
+		resized();
+	}
+	else if (cb == columnsSelector)
+	{
+		nColumns = columns[cb->getSelectedId()-1].getIntValue();
+		resized();
+	}
 }
 
 

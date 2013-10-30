@@ -59,7 +59,6 @@ private:
 
 	void updateScreenBuffer();
 	void resizeScreenBuffer();
-	void resizeDisplay();
 
 	ScopedPointer<BScanDisplay> bScanDisplay;
 	ScopedPointer<Viewport> viewport;
