@@ -129,3 +129,8 @@ int BScanDisplayNode::getFrameSize()
 {
 	return frameSize;
 }
+
+AudioSampleBuffer* BScanDisplayNode::getDisplayBufferAddress()
+{
+	return displayBuffer;
+}

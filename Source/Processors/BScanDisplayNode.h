@@ -71,6 +71,8 @@ public:
 
 	int getFrameIndex();
 	int getFrameSize();
+
+	AudioSampleBuffer* getDisplayBufferAddress();
 	
 private:
 

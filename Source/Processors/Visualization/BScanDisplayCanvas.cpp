@@ -23,7 +23,172 @@
 
 #include "BScanDisplayCanvas.h"
 
+BScanDisplayCanvas::BScanDisplayCanvas(BScanDisplayNode* n)
+	: processor(n), lastIndex(0), refillBuffer(false), nColumns(2),
+	channelHeight(100)
+{
 
+	displayBuffer = processor->getDisplayBufferAddress();
+	nChans = processor->getNumInputChannels();
+	
+	viewport = new Viewport();
+	bScanDisplay = new BScanDisplay(this, viewport);
+
+	viewport->setViewedComponent(bScanDisplay);
+	viewport->setScrollBarsShown(true,false);
+
+	scrollBarThickness = viewport->getScrollBarThickness();
+
+	addAndMakeVisible(viewport);
+
+	screenBuffer = new BScanScreenBuffer();
+
+	heights.add("50");
+	heights.add("75");
+	heights.add("100");
+	heights.add("125");
+	heights.add("150");
+
+	columns.add("1");
+	columns.add("2");
+	columns.add("3");
+
+	heightSelector = new ComboBox("Height");
+	heightSelector->addItemList(heights,1);
+	heightSelector->setSelectedId(3,false);
+	heightSelector->addListener(this);
+	addAndMakeVisible(heightSelector);
+
+	columnsSelector = new ComboBox("Columns");
+	columnsSelector->addItemList(columns,1);
+	columnsSelector->setSelectedId(2,false);
+	columnsSelector->addListener(this);
+	addAndMakeVisible(columnsSelector);
+}
+
+BScanDisplayCanvas::~BScanDisplayCanvas() {}
+
+void BScanDisplayCanvas::resized()
+{
+	int nRows = ceil(nChans/nColumns);
+
+	viewport->setBounds(0,0,getWidth(),getHeight()-30);
+	bScanDisplay->setBounds(0,0,getWidth()-scrollBarThickness, channelHeight*nRows+50*(nRows-1));
+	
+	heightSelector->setBounds(5,getHeight()-30,100,25);
+	columnsSelector->setBounds(175,getHeight()-30,100,25);
+
+	channelWidth = floor((bScanDisplay->getWidth() - 50*(nRows-1))/nRows);
+
+	resizeScreenBuffer();
+}
+
+void BScanDisplayCanvas::beginAnimation()
+{
+	lastIndex=0;
+	screenBuffer->clear();
+
+	running=true;
+	startCallbacks();
+}
+
+void BScanDisplayCanvas::endAnimation()
+{
+	stopCallbacks();
+	running=false;
+}
+
+void BScanDisplayCanvas::update()
+{
+	nChans = jmax(processor->getNumInputs(),1);
+
+	resized();
+
+}
+
+void BScanDisplayCanvas::resizeScreenBuffer()
+{
+	screenBuffer->resize(nChans,channelWidth,channelHeight);
+	if (running)
+	{
+		refillBuffer = true;
+	}
+}
+
+void BScanDisplayCanvas::updateScreenBuffer()
+{
+	int to, from;
+
+	int currentIndex = processor->getFrameIndex();
+	int frameSize = processor->getFrameSize();
+
+	int maxFrames = displayBuffer->getNumSamples() / frameSize;
+
+	if (refillBuffer)
+	{
+		from = currentIndex - channelWidth;
+		if (from < 0)
+		{
+			from = maxFrames+from;
+		}
+
+		to = currentIndex;
+	}
+	else
+	{
+		from = lastIndex;
+		to = currentIndex;
+	}
+
+	if (from < to)
+	{
+
+		for (int channel=0; channel < nChans; channel++)
+		{
+			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,from,to,frameSize);
+		}
+	}
+	else
+	{
+		for (int channel=0; channel < nChans; channel++)
+		{
+			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,to,maxFrames,frameSize);
+			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,0,from,frameSize);
+		}
+	}
+
+	lastIndex = currentIndex;
+	
+}
+
+BScanScreenBuffer* BScanDisplayCanvas::getScreenBuffer()
+{
+	return screenBuffer;
+}
+
+void BScanDisplayCanvas::refreshState()
+{
+	//refillBuffer = true;
+}
+
+void BScanDisplayCanvas::paint(Graphics& g)
+{
+	g.fillAll(Colours::darkgrey);
+}
+
+void BScanDisplayCanvas::refresh()
+{
+	updateScreenBuffer();
+	bScanDisplay->refresh();
+}
+
+void BScanDisplayCanvas::comboBoxChanged(ComboBox* cb)
+{
+
+}
+
+
+BScanScreenBuffer::BScanScreenBuffer() {}
 
 BScanScreenBuffer::BScanScreenBuffer(int nChans, int xSize, int ySize)
 	: sC(nChans), sX(xSize), sY(ySize)
@@ -80,7 +245,7 @@ int BScanScreenBuffer::getChannelIndex(int chan) const
 	return indicesArray[chan];
 }
 
-void BScanScreenBuffer::addFromAudioSampleBuffer(AudioSampleBuffer& buffer, int channel, int startSample, int nFrames, int frameSize)
+void BScanScreenBuffer::addFromAudioSampleBuffer(AudioSampleBuffer *buffer, int channel, int startSample, int nFrames, int frameSize)
 {
 	float scaleFactor = frameSize / sY;
 	float* channelData = allocatedData+channel*channelSize;
@@ -93,7 +258,7 @@ void BScanScreenBuffer::addFromAudioSampleBuffer(AudioSampleBuffer& buffer, int 
 
 		for (int j = 0; j < sY; j++)
 		{
-			*(channelData+offset) = *(buffer.getSampleData(channel,bufOrig)+roundToInt(j*scaleFactor));
+			*(channelData+offset) = *(buffer->getSampleData(channel,bufOrig)+roundToInt(j*scaleFactor));
 			offset++;
 		}
 

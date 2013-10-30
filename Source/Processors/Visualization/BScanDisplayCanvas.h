@@ -30,8 +30,10 @@
 
 class BScanChannelDisplay;
 class BScanDisplay;
+class BScanScreenBuffer;
 
-class BScanDisplayCanvas : public Visualizer
+class BScanDisplayCanvas : public Visualizer,
+	public ComboBox::Listener
 {
 public:
 
@@ -48,14 +50,40 @@ public:
 	void setParameter(int, float);
 	void setParameter(int, int, int, float) {}
 
+	void resized();
+	void comboBoxChanged(ComboBox* cb);
+
+	BScanScreenBuffer* getScreenBuffer();
+
 private:
-	ScopedPointer<BScanDisplay> display;
-	int frameSize();
+
+	void updateScreenBuffer();
+	void resizeScreenBuffer();
+	void resizeDisplay();
+
+	ScopedPointer<BScanDisplay> bScanDisplay;
+	ScopedPointer<Viewport> viewport;
 
 	AudioSampleBuffer *displayBuffer;
 	ScopedPointer<BScanScreenBuffer> screenBuffer;
 
 	BScanDisplayNode *processor;
+
+	ScopedPointer<ComboBox> heightSelector;
+	ScopedPointer<ComboBox> columnsSelector;
+
+	StringArray heights;
+	StringArray columns;
+
+	int nChans;
+	int nColumns, channelHeight, channelWidth;
+	int scrollBarThickness;
+
+	int lastIndex;
+
+	bool running;
+
+	bool refillBuffer;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanDisplayCanvas);
 };
@@ -64,8 +92,9 @@ class BScanDisplay : public Component
 {
 public:
 
-	BScanDisplay();
+	BScanDisplay(BScanDisplayCanvas*, Viewport*);
 	~BScanDisplay();
+	void refresh();
 
 private:
 
@@ -79,12 +108,15 @@ public:
 
 	void paint(Graphics &g);
 
+	
+
 
 };
 
 class BScanScreenBuffer
 {
 public:
+	BScanScreenBuffer();
 	BScanScreenBuffer(int nChans, int xSize, int ySize);
 	~BScanScreenBuffer();
 
@@ -92,7 +124,7 @@ public:
 	float getPoint(int chan, int frame, int pos) const;
 	int getChannelIndex(int chan) const;
 
-	void addFromAudioSampleBuffer(AudioSampleBuffer& buffer, int channel, int startSample, int nFrames, int frameSize);
+	void addFromAudioSampleBuffer(AudioSampleBuffer *buffer, int channel, int startSample, int nFrames, int frameSize);
 	void resize(int nChans, int xSize, int ySize);
 	void clear();
 
