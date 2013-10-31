@@ -64,6 +64,9 @@ BScanDisplayCanvas::BScanDisplayCanvas(BScanDisplayNode* n)
 	columnsSelector->setSelectedId(2,false);
 	columnsSelector->addListener(this);
 	addAndMakeVisible(columnsSelector);
+
+	bScanDisplay->updateSettings(channelHeight, nColumns);
+	bScanDisplay->setNumChannels(nChans);
 }
 
 BScanDisplayCanvas::~BScanDisplayCanvas() {}
@@ -78,7 +81,7 @@ void BScanDisplayCanvas::resized()
 	heightSelector->setBounds(5,getHeight()-30,100,25);
 	columnsSelector->setBounds(175,getHeight()-30,100,25);
 
-	channelWidth = floor((bScanDisplay->getWidth() - 50*(nRows-1))/nRows);
+	channelWidth = bScanDisplay->getChannelWidth();
 
 	resizeScreenBuffer();
 }
@@ -102,6 +105,7 @@ void BScanDisplayCanvas::update()
 {
 	nChans = jmax(processor->getNumInputs(),1);
 
+	bScanDisplay->setNumChannels(nChans);
 	resized();
 
 }
@@ -193,6 +197,102 @@ void BScanDisplayCanvas::comboBoxChanged(ComboBox* cb)
 	{
 		nColumns = columns[cb->getSelectedId()-1].getIntValue();
 		resized();
+	}
+	bScanDisplay->updateSettings(channelHeight, nColumns);
+}
+
+BScanDisplay::BScanDisplay(BScanDisplayCanvas *c, Viewport *v)
+	: canvas(c), viewport(v), channelHeight(100), nColumns(1), channelWidth(100)
+{
+}
+
+BScanDisplay::~BScanDisplay()
+{
+	deleteAllChildren();
+}
+
+void BScanDisplay::updateSettings(int chanHeight, int nCols)
+{
+	channelHeight = chanHeight;
+	nColumns = nCols;
+
+	updateChannelWidth();
+}
+
+void BScanDisplay::updateChannelWidth()
+{
+	int nRows;
+
+	if (nChans > 0)
+	{
+	nRows = ceil(nChans/nColumns);
+	}
+	else
+	{
+		nRows = 1;
+	}
+	channelWidth = floor((getWidth() - 50*(nRows-1))/nRows);
+}
+
+int BScanDisplay::getChannelWidth()
+{
+	return channelWidth;
+}
+
+void BScanDisplay::setNumChannels(int n)
+{
+	nChans = n;
+
+	deleteAllChildren();
+
+	channelArray.clear();
+
+	for (int i = 0 ; i < nChans; i++)
+	{
+		BScanChannelDisplay *chan = new BScanChannelDisplay(canvas, this, i);
+
+		addAndMakeVisible(chan);
+		channelArray.add(chan);
+	}
+
+}
+
+void BScanDisplay::resized()
+{
+	int xPos, yPos, col, row;
+
+	for (int i = 0; i < nChans; i++)
+	{
+		row = i/nColumns;
+		col = i%nColumns;
+
+		xPos=(col-1)*(channelWidth+50);
+		yPos=(row-1)*(channelHeight+50);
+
+		channelArray[i]->setBounds(xPos,yPos,channelWidth,channelHeight);
+	}
+	refresh();
+}
+
+void BScanDisplay::paint()
+{
+}
+
+void BScanDisplay::refresh()
+{
+	int topBorder = viewport->getViewPositionY();
+	int bottomBorder = viewport->getViewHeight() + topBorder;
+
+	for (int i = 0; i < nChans; i++)
+	{
+		int componentTop = channelArray[i]->getY();
+		int componentBottom = channelArray[i]->getHeight() + componentTop;
+
+		if ((topBorder <= componentBottom && bottomBorder >= componentTop))
+		{
+			channelArray[i]->repaint();
+		}
+
 	}
 }
 

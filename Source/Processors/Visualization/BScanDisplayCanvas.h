@@ -94,20 +94,43 @@ public:
 	BScanDisplay(BScanDisplayCanvas*, Viewport*);
 	~BScanDisplay();
 	void refresh();
+	void resized();
+
+	void setNumChannels(int n);
+	void updateSettings(int chanHeight, int nCols);
+	int getChannelWidth();
+
+	void paint();
 
 private:
+
+	void updateChannelWidth();
+
+	int channelHeight, channelWidth;
+	int nColumns;
+	int nChans;
+
+	BScanDisplayCanvas *canvas;
+	Viewport *viewport;
+
+	Array<BScanChannelDisplay*> channelArray;
 
 };
 
 class BScanChannelDisplay : public Component
 {
 public:
-	BScanChannelDisplay();
+	BScanChannelDisplay(BScanDisplayCanvas*, BScanDisplay*, int);
 	~BScanChannelDisplay();
 
 	void paint(Graphics &g);
 
-	
+private:
+
+	BScanDisplayCanvas* canvas;
+	BScanDisplay* display;
+
+	int chan;
 
 
 };
