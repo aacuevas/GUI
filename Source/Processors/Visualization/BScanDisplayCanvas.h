@@ -126,6 +126,7 @@ public:
 	void paint(Graphics &g);
 
 private:
+	Colour colorFromNormalizedPower(float pow);
 
 	BScanDisplayCanvas* canvas;
 	BScanDisplay* display;

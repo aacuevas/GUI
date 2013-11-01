@@ -297,6 +297,86 @@ void BScanDisplay::refresh()
 }
 
 
+BScanChannelDisplay::BScanChannelDisplay(BScanDisplayCanvas *c, BScanDisplay *d, int nc)
+	: canvas(c), display(d), chan(nc)
+{}
+
+BScanChannelDisplay::~BScanChannelDisplay()
+{}
+
+Colour BScanChannelDisplay::colorFromNormalizedPower(float pow)
+{
+	int r,g,b;
+
+	if (pow < 0.125)
+	{
+		r=0;
+		g=0;
+		b=127+1020*pow; //pow/0.125*255
+	}
+	else if (pow < 0.375)
+	{
+		r=0;
+		g=(pow-0.125)*1020;
+		b=255;
+	}
+	else if (pow < 0.625)
+	{
+		r=(pow-0.625)*1020;
+		g=255-(pow-0.125)*1020;
+		b=255;
+	}
+	else if (pow < 0.875)
+	{
+		r=255;
+		g=0;
+		b=255-(pow-0.125)*1020;
+	}
+	else
+	{
+		r=255-(pow-0.125)*1020;
+		g=0;
+		b=0;
+	}
+
+	return Colour(r,g,b);
+}
+
+void BScanChannelDisplay::paint(Graphics &g)
+{
+	BScanScreenBuffer *buffer = canvas->getScreenBuffer();
+	int index = buffer->getChannelIndex(chan);
+	int nFrames = getWidth();
+	int frameSize = getHeight();
+
+	float *data1 = buffer->getPointer(chan,index,0);
+	float *data2 = buffer->getPointer(chan,0,0);
+
+	int x=0;
+	int y;
+
+	for (int i=index; i < nFrames; i++)
+	{
+		for (y=frameSize-1; y>=0; y--)
+		{
+			g.setColour(colorFromNormalizedPower(*(data1++)));
+			g.setPixel(x,y);
+		}
+		x++;
+	}
+
+	for (int i=0; i < index; i++)
+	{
+		for (y=frameSize-1; y>=0; y--)
+		{
+			g.setColour(colorFromNormalizedPower(*(data2++)));
+			g.setPixel(x,y);
+		}
+		x++;
+	}
+}
+
+
 BScanScreenBuffer::BScanScreenBuffer() {}
 
 BScanScreenBuffer::BScanScreenBuffer(int nChans, int xSize, int ySize)
