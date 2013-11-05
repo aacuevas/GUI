@@ -80,7 +80,7 @@ void BScanDisplayNode::process(AudioSampleBuffer& buffer,
 	if (samplesToRead < samplesLeft)
 	{
 
-		for (int chan = 0; chan < buffer.getNumChannels; chan++)
+		for (int chan = 0; chan < buffer.getNumChannels(); chan++)
 		{
 			displayBuffer->copyFrom(chan,
 									samplesIndex,
