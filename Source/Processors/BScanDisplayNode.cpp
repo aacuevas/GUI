@@ -63,7 +63,7 @@ bool BScanDisplayNode::resizeBuffer()
 
 bool BScanDisplayNode::enable()
 {
-
+    
 }
 
 void BScanDisplayNode::process(AudioSampleBuffer& buffer,
@@ -95,7 +95,7 @@ void BScanDisplayNode::process(AudioSampleBuffer& buffer,
 	{
 		int extraSamples = samplesToRead - samplesLeft;
 
-		for (int chan = 0; chan < buffer.getNumChannels; chan++)
+		for (int chan = 0; chan < buffer.getNumChannels(); chan++)
 		{
 			displayBuffer->copyFrom(chan,
 									samplesIndex,
