@@ -25,7 +25,10 @@
 #define __BSCANDISPLAYNODE_H_3D2C11CC__
 
 #include "../../JuceLibraryCode/JuceHeader.h"
+#include "Editors/BScanDisplayEditor.h"
+#include "Editors/VisualizerEditor.h"
 #include "GenericProcessor.h"
+
 
 class BScanDisplayNode : public GenericProcessor
 {
@@ -34,6 +37,8 @@ public:
 	BScanDisplayNode();
 	
 	~BScanDisplayNode();
+
+	AudioProcessorEditor* createEditor();
 
 	bool isSource()
 	{

@@ -34,6 +34,12 @@ BScanDisplayNode::~BScanDisplayNode()
 {
 }
 
+AudioProcessorEditor* BScanDisplayNode::createEditor()
+{
+	editor = new BScanDisplayEditor(this,true);
+	return editor;
+}
+
 void BScanDisplayNode::setParameter(int parameterIndex, float newValue)
 {
 	
@@ -46,7 +52,8 @@ void BScanDisplayNode::updateSettings()
 
 bool BScanDisplayNode::resizeBuffer()
 {
-	frameSize = channels[0]->bitVolts; //PLACEHOLDER. TODO: Create an actual "frameSize" on spectrum channels
+	//frameSize = channels[0]->bitVolts; //PLACEHOLDER. TODO: Create an actual "frameSize" on spectrum channels
+	frameSize = 1024; //testing
 	int nInputs = getNumInputs();
 
 	if (frameSize > 0 && nInputs > 0)
@@ -63,7 +70,23 @@ bool BScanDisplayNode::resizeBuffer()
 
 bool BScanDisplayNode::enable()
 {
-    
+	if (resizeBuffer())
+    {
+		BScanDisplayEditor* editor = (BScanDisplayEditor*) getEditor();
+        editor->enable();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool BScanDisplayNode::disable()
+{
+	BScanDisplayEditor *editor= (BScanDisplayEditor*) getEditor();
+	editor->disable();
+	return true;
 }
 
 void BScanDisplayNode::process(AudioSampleBuffer& buffer,

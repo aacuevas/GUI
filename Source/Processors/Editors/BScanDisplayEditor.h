@@ -25,6 +25,11 @@
 #define __BSCANDISPLAYEDITOR_H_A2812B0D__
 
 #include "GenericEditor.h"
+
+#include "../../UI/UIComponent.h"
+#include "../../UI/DataViewport.h"
+#include "../Visualization/DataWindow.h"
+
 #include "../BScanDisplayNode.h"
 #include "../Visualization/BScanDisplayCanvas.h"
 #include "VisualizerEditor.h"
@@ -40,7 +45,7 @@ public:
 private:
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanDisplayEditor);
-}
+};
 
 
 

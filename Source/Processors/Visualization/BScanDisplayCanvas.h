@@ -28,6 +28,8 @@
 #include "../BScanDisplayNode.h"
 #include "Visualizer.h"
 
+class BScanDisplayNode;
+
 class BScanChannelDisplay;
 class BScanDisplay;
 class BScanScreenBuffer;
@@ -47,7 +49,7 @@ public:
 	void refresh();
 	void beginAnimation();
 	void endAnimation();
-	void setParameter(int, float);
+	void setParameter(int, float) {};
 	void setParameter(int, int, int, float) {}
 
 	void resized();
@@ -100,7 +102,7 @@ public:
 	void updateSettings(int chanHeight, int nCols);
 	int getChannelWidth();
 
-	void paint();
+	void paint(Graphics &g);
 
 private:
 
@@ -159,6 +161,6 @@ private:
 	int sC, sX, sY;
 	int channelSize;
 
-}
+};
 
 #endif  // __BSCANDISPLAYCANVAS_H_367A3CBA__

@@ -25,12 +25,15 @@
 
 BScanDisplayCanvas::BScanDisplayCanvas(BScanDisplayNode* n)
 	: processor(n), lastIndex(0), refillBuffer(false), nColumns(2),
-	channelHeight(100)
+	channelHeight(100), channelWidth(100)
 {
 
 	displayBuffer = processor->getDisplayBufferAddress();
 	nChans = processor->getNumInputChannels();
+
+	std::cout << "creating BScanCanvas for " << nChans << "channels" <<std::endl;
 	
+	screenBuffer = new BScanScreenBuffer();
 	viewport = new Viewport();
 	bScanDisplay = new BScanDisplay(this, viewport);
 
@@ -41,7 +44,7 @@ BScanDisplayCanvas::BScanDisplayCanvas(BScanDisplayNode* n)
 
 	addAndMakeVisible(viewport);
 
-	screenBuffer = new BScanScreenBuffer();
+	
 
 	heights.add("50");
 	heights.add("75");
@@ -76,12 +79,17 @@ void BScanDisplayCanvas::resized()
 	int nRows = ceil(nChans/nColumns);
 
 	viewport->setBounds(0,0,getWidth(),getHeight()-30);
-	bScanDisplay->setBounds(0,0,getWidth()-scrollBarThickness, channelHeight*nRows+50*(nRows-1));
+	bScanDisplay->setBounds(0,0,getWidth()-scrollBarThickness, channelHeight*nRows+50*(nRows-1)+10);
 	
 	heightSelector->setBounds(5,getHeight()-30,100,25);
 	columnsSelector->setBounds(175,getHeight()-30,100,25);
 
 	channelWidth = bScanDisplay->getChannelWidth();
+	
+	if (channelWidth == 0) //To avoid problems on initialization
+	{
+		channelWidth = 100;
+	}
 
 	resizeScreenBuffer();
 }
@@ -112,6 +120,7 @@ void BScanDisplayCanvas::update()
 
 void BScanDisplayCanvas::resizeScreenBuffer()
 {
+	std::cout << "BScan: Screenbuffer resize. nChans: " << nChans << " W: " << channelWidth << " H: " << channelHeight << std::endl;
 	screenBuffer->resize(nChans,channelWidth,channelHeight);
 	if (running)
 	{
@@ -216,22 +225,13 @@ void BScanDisplay::updateSettings(int chanHeight, int nCols)
 	channelHeight = chanHeight;
 	nColumns = nCols;
 
-	updateChannelWidth();
+	resized();
 }
 
 void BScanDisplay::updateChannelWidth()
 {
-	int nRows;
 
-	if (nChans > 0)
-	{
-	nRows = ceil(nChans/nColumns);
-	}
-	else
-	{
-		nRows = 1;
-	}
-	channelWidth = floor((getWidth() - 50*(nRows-1))/nRows);
+	channelWidth = floor((getWidth() -10 - 50*(nColumns-1))/nColumns);
 }
 
 int BScanDisplay::getChannelWidth()
@@ -261,20 +261,24 @@ void BScanDisplay::resized()
 {
 	int xPos, yPos, col, row;
 
+	updateChannelWidth();
+
 	for (int i = 0; i < nChans; i++)
 	{
 		row = i/nColumns;
 		col = i%nColumns;
 
-		xPos=(col-1)*(channelWidth+50);
-		yPos=(row-1)*(channelHeight+50);
+		xPos=10+(col)*(channelWidth+50);
+		yPos=10+(row)*(channelHeight+50);
 
+		std::cout << "BS-C: " << i << " x: " << xPos << " y: " << yPos << " w: " << channelWidth << " h: " << channelHeight << std::endl;
 		channelArray[i]->setBounds(xPos,yPos,channelWidth,channelHeight);
+		channelArray[i]->repaint();
 	}
 	refresh();
 }
 
-void BScanDisplay::paint()
+void BScanDisplay::paint(Graphics &g)
 {
 }
 
