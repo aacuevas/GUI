@@ -66,6 +66,7 @@ ProcessorList::ProcessorList()
     filters->addSubItem(new ProcessorListItem("Phase Detector"));
     //filters->addSubItem(new ProcessorListItem("Digital Ref"));
     filters->addSubItem(new ProcessorListItem("Channel Map"));
+	filters->addSubItem(new ProcessorListItem("DFT Transform"));
 
     ProcessorListItem* sinks = new ProcessorListItem("Sinks");
     sinks->addSubItem(new ProcessorListItem("LFP Viewer"));
@@ -75,6 +76,7 @@ ProcessorList::ProcessorList()
     //sinks->addSubItem(new ProcessorListItem("Arduino Output"));
     // sinks->addSubItem(new ProcessorListItem("FPGA Output"));
     sinks->addSubItem(new ProcessorListItem("Pulse Pal"));
+	sinks->addSubItem(new ProcessorListItem("BScan Viewer"));
 
     ProcessorListItem* utilities = new ProcessorListItem("Utilities");
     utilities->addSubItem(new ProcessorListItem("Splitter"));

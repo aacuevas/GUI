@@ -53,6 +53,9 @@
 #include "../UI/UIComponent.h"
 #include "../UI/EditorViewport.h"
 
+#include "BScanDisplayNode.h"
+#include "DFTNode.h"
+
 ProcessorGraph::ProcessorGraph() : currentNodeId(100)
 {
 
@@ -511,6 +514,11 @@ GenericProcessor* ProcessorGraph::createProcessorFromDescription(String& descrip
             std::cout << "Creating a new channel mapping node." << std::endl;
             processor = new ChannelMappingNode();
         }
+		else if (subProcessorType.equalsIgnoreCase("DFT Transform"))
+		{
+			std::cout << "Crearing a new DFTNode." << std::endl;
+			processor = new DFTNode();
+		}
 
         sendActionMessage("New filter node created.");
 
@@ -590,6 +598,11 @@ GenericProcessor* ProcessorGraph::createProcessorFromDescription(String& descrip
             std::cout << "Creating a Pulse Pal output node." << std::endl;
             processor = new PulsePalOutput();
         }
+		else if (subProcessorType.equalsIgnoreCase("BScan Viewer"))
+		{
+			std::cout << "Creating a B-Scan visualizer." << std::endl;
+			processor = new BScanDisplayNode();
+		}
 
         sendActionMessage("New sink created.");
     }
