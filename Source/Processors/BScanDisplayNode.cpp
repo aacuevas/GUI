@@ -52,13 +52,12 @@ void BScanDisplayNode::updateSettings()
 
 bool BScanDisplayNode::resizeBuffer()
 {
-	//frameSize = channels[0]->bitVolts; //PLACEHOLDER. TODO: Create an actual "frameSize" on spectrum channels
-	frameSize = 1024; //testing
+	frameSize = channels[0]->windowLength; //This should be more sophisticates. And perhaps actually check which channels are windowed and only use them.
 	int nInputs = getNumInputs();
 
 	if (frameSize > 0 && nInputs > 0)
 	{
-		maxFrames=3000; //Let's keep 3000 frames for now. We can make this dynamic later
+		maxFrames=2000; //Let's keep 2000 frames for now (enouth for a 1080p display). We can make this dynamic later
 		displayBuffer->setSize(nInputs,frameSize*maxFrames,false,true); 
 		frameIndex = 0;
 		return true;

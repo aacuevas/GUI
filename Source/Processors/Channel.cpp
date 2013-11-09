@@ -24,7 +24,7 @@
 #include "Channel.h"
 
 
-Channel::Channel(GenericProcessor* p, int n) : num(n), eventType(0), processor(p), sampleRate(44100.0), bitVolts(1.0f), isEventChannel(false), isMonitored(false), isEnabled(true), isRecording(false)
+Channel::Channel(GenericProcessor* p, int n) : num(n), eventType(0), processor(p), sampleRate(44100.0), bitVolts(1.0f), isEventChannel(false), isMonitored(false), isEnabled(true), isRecording(false), isWindowedChannel(false), windowLength(0)
     
 {
     nodeId = p->getNodeId();
@@ -44,6 +44,9 @@ Channel::Channel(const Channel& ch)
     eventType = ch.eventType;
     nodeId = ch.nodeId;
     num = ch.num;
+
+	isWindowedChannel = ch.isWindowedChannel;
+	windowLength = ch.windowLength;
 
     setRecordState(false);
 }

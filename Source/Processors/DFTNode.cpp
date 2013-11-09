@@ -39,6 +39,11 @@ void DFTNode::setParameter(int parameterIndex, float newValue)
 
 void DFTNode::updateSettings()
 {
+	for (int i=0; i < channels.size(); i++)
+	{
+		channels[i]->isWindowedChannel = true;
+		channels[i]->windowLength = 1024; //put actual length here
+	}
 	/* Something on the lines of
 	circularbuffer.Resize(getNumInputs(),M);
 	*/

@@ -98,6 +98,10 @@ public:
     bool isMonitored;
     bool isEnabled;
 
+	//Spectrum type
+	bool isWindowedChannel;
+	int windowLength;
+
     // file info (for disk writing):
     String filename;
     FILE* file;
