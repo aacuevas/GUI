@@ -85,6 +85,7 @@ private:
 	int frameIndex;
 
 	int frameSize;
+	int maxFrames;
 
 	bool resizeBuffer();
 

@@ -72,11 +72,13 @@ BScanDisplayCanvas::BScanDisplayCanvas(BScanDisplayNode* n)
 	bScanDisplay->setNumChannels(nChans);
 }
 
-BScanDisplayCanvas::~BScanDisplayCanvas() {}
+BScanDisplayCanvas::~BScanDisplayCanvas() {
+bScanDisplay = nullptr; //For some reason if ww don't delete this before the viewport the program crashes
+}
 
 void BScanDisplayCanvas::resized()
 {
-	int nRows = ceil(nChans/nColumns);
+	int nRows = ceil((float)nChans/nColumns);
 
 	viewport->setBounds(0,0,getWidth(),getHeight()-30);
 	bScanDisplay->setBounds(0,0,getWidth()-scrollBarThickness, channelHeight*nRows+50*(nRows-1)+10);
@@ -86,7 +88,7 @@ void BScanDisplayCanvas::resized()
 
 	channelWidth = bScanDisplay->getChannelWidth();
 	
-	if (channelWidth == 0) //To avoid problems on initialization
+	if (channelWidth <= 0) //To avoid problems on initialization
 	{
 		channelWidth = 100;
 	}
@@ -130,46 +132,53 @@ void BScanDisplayCanvas::resizeScreenBuffer()
 
 void BScanDisplayCanvas::updateScreenBuffer()
 {
-	int to, from;
+	int  startFrame,framesToRead,extraFrames;
 
 	int currentIndex = processor->getFrameIndex();
 	int frameSize = processor->getFrameSize();
 
 	int maxFrames = displayBuffer->getNumSamples() / frameSize;
+	int framesLeft = maxFrames - lastIndex;
 
 	if (refillBuffer)
 	{
-		from = currentIndex - channelWidth;
-		if (from < 0)
+		refillBuffer = false;
+		startFrame = currentIndex - channelWidth;
+		if (startFrame < 0)
 		{
-			from = maxFrames+from;
+			startFrame = maxFrames+startFrame;
 		}
-
-		to = currentIndex;
+		framesToRead = channelWidth;
 	}
 	else
 	{
-		from = lastIndex;
-		to = currentIndex;
+		startFrame = lastIndex;
+		if (lastIndex < currentIndex)
+		{
+			framesToRead = currentIndex-lastIndex;
+		}
+		else
+		{
+			framesToRead=framesLeft+currentIndex;
+		}
 	}
 
-	if (from < to)
+	if (framesToRead < framesLeft)
 	{
-
 		for (int channel=0; channel < nChans; channel++)
 		{
-			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,from,to,frameSize);
+			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,startFrame*frameSize,framesToRead,frameSize);
 		}
 	}
 	else
 	{
+		extraFrames = framesToRead-framesLeft;
 		for (int channel=0; channel < nChans; channel++)
 		{
-			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,to,maxFrames,frameSize);
-			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,0,from,frameSize);
+			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,startFrame*frameSize,framesLeft,frameSize);
+			screenBuffer->addFromAudioSampleBuffer(displayBuffer,channel,0,extraFrames,frameSize);
 		}
 	}
-
 	lastIndex = currentIndex;
 	
 }
@@ -200,14 +209,13 @@ void BScanDisplayCanvas::comboBoxChanged(ComboBox* cb)
 	if (cb == heightSelector)
 	{
 		channelHeight = heights[cb->getSelectedId()-1].getIntValue();
-		resized();
 	}
 	else if (cb == columnsSelector)
 	{
 		nColumns = columns[cb->getSelectedId()-1].getIntValue();
-		resized();
 	}
 	bScanDisplay->updateSettings(channelHeight, nColumns);
+	resized();
 }
 
 BScanDisplay::BScanDisplay(BScanDisplayCanvas *c, Viewport *v)
@@ -225,7 +233,7 @@ void BScanDisplay::updateSettings(int chanHeight, int nCols)
 	channelHeight = chanHeight;
 	nColumns = nCols;
 
-	resized();
+	updateChannelWidth();
 }
 
 void BScanDisplay::updateChannelWidth()
@@ -254,6 +262,7 @@ void BScanDisplay::setNumChannels(int n)
 		addAndMakeVisible(chan);
 		channelArray.add(chan);
 	}
+	resized();
 
 }
 
@@ -271,9 +280,7 @@ void BScanDisplay::resized()
 		xPos=10+(col)*(channelWidth+50);
 		yPos=10+(row)*(channelHeight+50);
 
-		std::cout << "BS-C: " << i << " x: " << xPos << " y: " << yPos << " w: " << channelWidth << " h: " << channelHeight << std::endl;
 		channelArray[i]->setBounds(xPos,yPos,channelWidth,channelHeight);
-		channelArray[i]->repaint();
 	}
 	refresh();
 }
@@ -306,9 +313,117 @@ BScanChannelDisplay::BScanChannelDisplay(BScanDisplayCanvas *c, BScanDisplay *d,
 {}
 
 BScanChannelDisplay::~BScanChannelDisplay()
-{}
+{
+}
 
-Colour BScanChannelDisplay::colorFromNormalizedPower(float pow)
+
+
+void BScanChannelDisplay::paint(Graphics &g)
+{
+	BScanScreenBuffer *buffer = canvas->getScreenBuffer();
+	Image* data = buffer->getPointer(chan);
+	int index = buffer->getChannelIndex(chan);
+	int nFrames = getWidth();
+	int frameSize = getHeight();
+
+	int x=0;
+	int y;
+	
+	g.drawImage(*data,0,0,nFrames-index,frameSize,index,0,nFrames-index,frameSize);
+	g.drawImage(*data,nFrames-index,0,index,frameSize,0,0,index,frameSize);
+
+}
+
+
+BScanScreenBuffer::BScanScreenBuffer() {}
+
+BScanScreenBuffer::BScanScreenBuffer(int nChans, int xSize, int ySize)
+	: sC(nChans), sX(xSize), sY(ySize)
+{
+	buffer.clear();
+	channelSize = sX*sY;
+	for (int i = 0; i < nChans; i++)
+	{
+		Image* im = new Image(Image::PixelFormat::RGB,sX,sY,false);
+		im->clear(Rectangle<int>(sX,sY),colorFromNormalizedPower(0));
+		buffer.add(im);
+		indicesArray.add(0);
+	}
+}
+
+BScanScreenBuffer::~BScanScreenBuffer()
+{
+}
+
+Image* BScanScreenBuffer::getPointer(int chan) const
+{
+	return buffer[chan];
+}
+
+
+
+void BScanScreenBuffer::resize(int nChans, int xSize, int ySize)
+{
+	sC = nChans;
+	sX = xSize;
+	sY = ySize;
+	channelSize = sX*sY;
+
+	buffer.clear();
+	
+	indicesArray.clear();
+	for (int i = 0; i < nChans; i++)
+	{
+		Image* im = new Image(Image::PixelFormat::RGB,sX,sY,false);
+		im->clear(Rectangle<int>(sX,sY),colorFromNormalizedPower(0));
+		buffer.add(im);
+		indicesArray.add(0);
+	}
+}
+
+void BScanScreenBuffer::clear()
+{
+	for (int i = 0; i < sC; i++)
+	{
+		buffer[i]->clear(Rectangle<int>(sX,sY),colorFromNormalizedPower(0));
+		indicesArray.set(i,0);
+	}
+}
+
+int BScanScreenBuffer::getChannelIndex(int chan) const
+{
+	return indicesArray[chan];
+}
+
+void BScanScreenBuffer::addFromAudioSampleBuffer(AudioSampleBuffer *buffer, int channel, int startSample, int nFrames, int frameSize)
+{
+	float scaleFactor = frameSize / sY;
+	Image* channelData = this->buffer[channel];
+	int posX = indicesArray[channel];
+
+
+	for (int i = 0; i < nFrames; i++)
+	{
+		int bufOrig=startSample+i*frameSize;
+
+		for (int j = 0; j < sY; j++)
+		{
+			channelData->setPixelAt(posX,j,colorFromNormalizedPower(
+				*(buffer->getSampleData(channel,bufOrig)+roundToInt(j*scaleFactor))));
+			
+		}
+		posX++;
+		if (posX >= sX)
+		{
+			posX = 0;
+		}
+
+	}
+	indicesArray.set(channel,posX);
+	
+}
+
+Colour BScanScreenBuffer::colorFromNormalizedPower(float pow)
 {
 	int r,g,b;
 
@@ -326,145 +441,22 @@ Colour BScanChannelDisplay::colorFromNormalizedPower(float pow)
 	}
 	else if (pow < 0.625)
 	{
-		r=(pow-0.625)*1020;
-		g=255-(pow-0.125)*1020;
-		b=255;
+		r=(pow-0.375)*1020;
+		g=255;
+		b=255-(pow-0.375)*1020;
 	}
 	else if (pow < 0.875)
 	{
 		r=255;
-		g=0;
-		b=255-(pow-0.125)*1020;
+		g=255-(pow-0.625)*1020;
+		b=0;
 	}
 	else
 	{
-		r=255-(pow-0.125)*1020;
+		r=255-(pow-0.875)*1020;
 		g=0;
 		b=0;
 	}
 
 	return Colour(r,g,b);
-}
-
-void BScanChannelDisplay::paint(Graphics &g)
-{
-	BScanScreenBuffer *buffer = canvas->getScreenBuffer();
-	int index = buffer->getChannelIndex(chan);
-	int nFrames = getWidth();
-	int frameSize = getHeight();
-
-	float *data1 = buffer->getPointer(chan,index,0);
-	float *data2 = buffer->getPointer(chan,0,0);
-
-	int x=0;
-	int y;
-
-	for (int i=index; i < nFrames; i++)
-	{
-		for (y=frameSize-1; y>=0; y--)
-		{
-			g.setColour(colorFromNormalizedPower(*(data1++)));
-			g.setPixel(x,y);
-		}
-		x++;
-	}
-
-	for (int i=0; i < index; i++)
-	{
-		for (y=frameSize-1; y>=0; y--)
-		{
-			g.setColour(colorFromNormalizedPower(*(data2++)));
-			g.setPixel(x,y);
-		}
-		x++;
-	}
-}
-
-
-BScanScreenBuffer::BScanScreenBuffer() {}
-
-BScanScreenBuffer::BScanScreenBuffer(int nChans, int xSize, int ySize)
-	: sC(nChans), sX(xSize), sY(ySize)
-{
-	allocatedData.calloc(nChans*xSize*ySize,sizeof(float));
-	channelSize = sX*sY;
-	for (int i = 0; i < nChans; i++)
-	{
-		indicesArray.add(0);
-	}
-}
-
-BScanScreenBuffer::~BScanScreenBuffer()
-{
-}
-
-float* BScanScreenBuffer::getPointer(int chan, int frame, int pos) const
-{
-	return allocatedData+chan*channelSize+frame*sX+sY;
-}
-
-float BScanScreenBuffer::getPoint(int chan, int frame, int pos) const
-{
-	return *(allocatedData+chan*channelSize+frame*sX+sY);
-}
-
-void BScanScreenBuffer::resize(int nChans, int xSize, int ySize)
-{
-	sC = nChans;
-	sX = xSize;
-	sY = ySize;
-	channelSize = sX*sY;
-
-	allocatedData.calloc(nChans*xSize*ySize,sizeof(float));
-	
-	indicesArray.clear();
-	for (int i = 0; i < nChans; i++)
-	{
-		indicesArray.add(0);
-	}
-}
-
-void BScanScreenBuffer::clear()
-{
-	FloatVectorOperations::clear(allocatedData,sC*sX*sY);
-	for (int i = 0; i < sC; i++)
-	{
-		indicesArray.set(i,0);
-	}
-}
-
-int BScanScreenBuffer::getChannelIndex(int chan) const
-{
-	return indicesArray[chan];
-}
-
-void BScanScreenBuffer::addFromAudioSampleBuffer(AudioSampleBuffer *buffer, int channel, int startSample, int nFrames, int frameSize)
-{
-	float scaleFactor = frameSize / sY;
-	float* channelData = allocatedData+channel*channelSize;
-	int offset = indicesArray[channel]*sY;
-
-
-	for (int i = 0; i < nFrames; i++)
-	{
-		int bufOrig=startSample+i*frameSize;
-
-		for (int j = 0; j < sY; j++)
-		{
-			*(channelData+offset) = *(buffer->getSampleData(channel,bufOrig)+roundToInt(j*scaleFactor));
-			offset++;
-		}
-
-		if (indicesArray[channel] >= sX)
-		{
-			offset = 0;
-			indicesArray.set(channel,0);
-		}
-		else
-		{
-			indicesArray.set(channel,indicesArray[channel]+1);
-		}
-
-	}
-	
 }

@@ -58,7 +58,8 @@ bool BScanDisplayNode::resizeBuffer()
 
 	if (frameSize > 0 && nInputs > 0)
 	{
-		displayBuffer->setSize(nInputs,frameSize*2000); //Let's keep 200 frames for now
+		maxFrames=3000; //Let's keep 3000 frames for now. We can make this dynamic later
+		displayBuffer->setSize(nInputs,frameSize*maxFrames,false,true); 
 		frameIndex = 0;
 		return true;
 	}
@@ -95,7 +96,7 @@ void BScanDisplayNode::process(AudioSampleBuffer& buffer,
 {
 	int samplesIndex = frameIndex*frameSize;
 
-	int numFrames = (nSamples / frameSize); //nSamples should be a multiple of frameSize, but just in case, this will round any excess
+	int numFrames = (nSamples / frameSize); //nSamples should be a multiple of frameSize, but just in case, this will trim any excess
 	int samplesToRead = numFrames*frameSize;
 
 	int samplesLeft = displayBuffer->getNumSamples() - samplesIndex;
@@ -113,6 +114,10 @@ void BScanDisplayNode::process(AudioSampleBuffer& buffer,
 									samplesToRead);
 		}
 		frameIndex+=numFrames;
+		if (frameIndex >= maxFrames)
+		{
+			frameIndex=0;
+		}
 	}
 	else
 	{

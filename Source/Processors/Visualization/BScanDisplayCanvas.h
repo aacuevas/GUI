@@ -117,6 +117,8 @@ private:
 
 	Array<BScanChannelDisplay*> channelArray;
 
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanDisplay);
+
 };
 
 class BScanChannelDisplay : public Component
@@ -128,13 +130,13 @@ public:
 	void paint(Graphics &g);
 
 private:
-	Colour colorFromNormalizedPower(float pow);
 
 	BScanDisplayCanvas* canvas;
 	BScanDisplay* display;
 
 	int chan;
 
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanChannelDisplay);
 
 };
 
@@ -145,8 +147,7 @@ public:
 	BScanScreenBuffer(int nChans, int xSize, int ySize);
 	~BScanScreenBuffer();
 
-	float* getPointer(int chan, int frame, int pos) const;
-	float getPoint(int chan, int frame, int pos) const;
+	Image* getPointer(int chan) const;
 	int getChannelIndex(int chan) const;
 
 	void addFromAudioSampleBuffer(AudioSampleBuffer *buffer, int channel, int startSample, int nFrames, int frameSize);
@@ -154,12 +155,15 @@ public:
 	void clear();
 
 private:
+	Colour colorFromNormalizedPower(float pow);
 
-	HeapBlock<float> allocatedData;
+	OwnedArray<Image> buffer;
 	Array<int> indicesArray;
 
 	int sC, sX, sY;
 	int channelSize;
+
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BScanScreenBuffer);
 
 };
 
