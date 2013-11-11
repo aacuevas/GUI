@@ -31,6 +31,7 @@ class DFTNode : public GenericProcessor
 {
 public:
 
+	DFTNode(int, int);
 	DFTNode();
 
 	~DFTNode();
@@ -68,14 +69,20 @@ public:
 
 		Every time the chain is modified, as the number of input channels or other
 		settings may change, this function is called to update the internal settings
-		of the processor. Typical examples are bufer sizes. */
+		of the processor. Typical examples are buffer sizes. */
 	void updateSettings();
 	
 private:
-
+    int FFTsize;
+    int nOverlap;
+    int step;
+    
+    int nSamplesInOverlapBuffer;
+    AudioSampleBuffer *overlapBuffer;
+    
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DFTNode);
 
-}
+};
 
 
 
